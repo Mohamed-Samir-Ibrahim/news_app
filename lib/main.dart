@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:news_app/features/onboarding/onboarding_screen.dart';
 import 'package:news_app/features/splash/splash_screen.dart';
 
 void main() {
@@ -13,7 +14,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'News',
+      theme: ThemeData(
+        scaffoldBackgroundColor: Color(0xfff3f3f3),
+      ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),);
+      home: const OnboardingScreen(),);
   }
 }
