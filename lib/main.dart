@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:news_app/core/services/preference_manager.dart';
 import 'package:news_app/features/onboarding/onboarding_screen.dart';
 import 'package:news_app/features/splash/splash_screen.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await PreferencesManager().init();
   runApp(const MyApp());
 }
 
