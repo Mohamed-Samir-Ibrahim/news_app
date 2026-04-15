@@ -37,20 +37,29 @@ dependencies:
   shared_preferences:
   hive:
   provider:
-  flutter_native_splash:
-flutter_native_splash:
-  color: "#ffffff"
-  image: "assets/splash.png"
-  color_dark: "#000000"
-  image_dark: "assets/splash-invert.png"
-  android: true
-  ios: true
-  web: false
-  android_12:
-    image: "assets/android12splash.png"
-    color: "#ffffff"
-    color_dark: "#000000"
-    image_dark: "assets/android12splash-invert.png"
+#  flutter_launcher_icons:
+#flutter_launcher_icons:
+#  android: "launcher_icon"
+#  ios: true
+#  remove_alpha_ios: true
+#  image_path: "assets/icon/icon.png"
+#  min_sdk_android: 21 # android min sdk min:16, default 21
+#  adaptive_icon_background: "#ffffff"
+#  adaptive_icon_foreground: "path/to/image.png"
+#  flutter_native_splash:
+#flutter_native_splash:
+#  color: "#ffffff"
+#  image: "assets/splash.png"
+#  color_dark: "#000000"
+#  image_dark: "assets/splash-invert.png"
+#  android: true
+#  ios: true
+#  web: false
+#  android_12:
+#    image: "assets/android12splash.png"
+#    color: "#ffffff"
+#    color_dark: "#000000"
+#    image_dark: "assets/android12splash-invert.png"
 dev_dependencies:
   flutter_test:
     sdk: flutter
