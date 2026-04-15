@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:news_app/core/services/preference_manager.dart';
-import 'package:news_app/features/onboarding/onboarding_screen.dart';
 import 'package:news_app/features/splash/splash_screen.dart';
 
 void main() async{
@@ -21,6 +20,6 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Color(0xfff3f3f3),
       ),
       debugShowCheckedModeBanner: false,
-      home: const OnboardingScreen(),);
+      home: const SplashScreen(),);
   }
 }
