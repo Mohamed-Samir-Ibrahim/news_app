@@ -37,6 +37,8 @@ dependencies:
   shared_preferences:
   hive:
   provider:
+  hive_flutter: ^1.1.0
+  path_provider:
 #  flutter_launcher_icons:
 #flutter_launcher_icons:
 #  android: "launcher_icon"
