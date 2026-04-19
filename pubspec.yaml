@@ -39,6 +39,9 @@ dependencies:
   provider:
   hive_flutter: ^1.1.0
   path_provider:
+  crypto:
+  encrypt:
+  flutter_secure_storage:
 #  flutter_launcher_icons:
 #flutter_launcher_icons:
 #  android: "launcher_icon"
