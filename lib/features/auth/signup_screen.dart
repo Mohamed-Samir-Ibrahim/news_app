@@ -2,32 +2,77 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:news_app/core/models/news_article_model.dart';
 import 'package:news_app/core/models/user/user_model.dart';
+import 'package:news_app/core/services/encryption_service.dart';
 import 'package:news_app/core/services/preference_manager.dart';
+import 'package:news_app/core/services/secure_storage_service.dart';
 import 'package:news_app/features/auth/login_screen.dart';
 import 'package:news_app/shared/custom_input_label_form.dart';
 
-class SignupScreen extends StatelessWidget {
-  SignupScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
   final _formKey = GlobalKey<FormState>();
 
-  Future<String?> addUser(String email, String password) async {
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final savedEmail = await SecureStorageService.getDecryptedPassword(
+          'saved_email');
+      final savedPassword = await SecureStorageService.getDecryptedPassword(
+          'saved_password');
+
+      if (savedEmail != null && savedPassword != null) {
+        setState(() {
+          _emailController.text = savedEmail.trim();
+          _passwordController.text = savedPassword.trim();
+          _confirmPasswordController.text = savedPassword.trim();
+        });
+      }
+    } catch (e) {
+      print('Error loading saved credentials: $e');
+    }
+  }
+
+  // ✅ تعديل: تخزين كلمة المرور بشكل مشفر (Hashed)
+  Future<String?> addUser(String email, String plainPassword) async {
     final box = Hive.box<UserModel>('users');
 
     // Check if email already exists
-    final emailExists = box.values.any((user) => user.email == email);
+    final emailExists = box.values.any((user) =>
+    user.email.trim() == email.trim());
     if (emailExists) {
       return 'Email already exists';
     }
 
     final uid = DateTime.now().millisecondsSinceEpoch.toString();
-    final newUser = UserModel(uid: uid, email: email, password: password);
+
+    // 🔐 تشفير كلمة المرور قبل التخزين
+    final hashedPassword = EncryptionService.hashPassword(plainPassword);
+
+    print('🔐 REGISTER: Plain password: $plainPassword');
+    print('🔐 REGISTER: Hashed password (stored): $hashedPassword');
+
+    // تخزين الهاش وليس النص العادي
+    final newUser = UserModel(
+      uid: uid,
+      email: email,
+      password: hashedPassword, // 🔐 مشفر
+    );
 
     await box.put(uid, newUser);
     PreferencesManager().setString('userId', uid);
@@ -37,26 +82,65 @@ class SignupScreen extends StatelessWidget {
   }
 
   void handleSignup(BuildContext context) async {
-    final error = await addUser(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+    // ✅ التحقق من تطابق كلمة المرور مع تأكيدها
+    final email = _emailController.text.trim();
+    final plainPassword = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    // ✅ التحقق الإضافي من التطابق
+    if (plainPassword != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // ✅ التحقق من طول كلمة المرور
+    if (plainPassword.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 6 characters'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // ✅ التحقق من صحة البريد الإلكتروني
+    if (!emailRegExp.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final error = await addUser(email, plainPassword);
 
     if (error != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
     } else {
       // Success - Navigate back to Login
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Account created successfully! Please sign in.'),
+          backgroundColor: Colors.green,
         ),
       );
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
   }
@@ -92,7 +176,6 @@ class SignupScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Dynamic top spacing
                   SizedBox(height: screenHeight * 0.12),
 
                   Center(
@@ -106,7 +189,7 @@ class SignupScreen extends StatelessWidget {
                   SizedBox(height: screenHeight * 0.04),
 
                   Text(
-                    'Welcome to Newst',
+                    'Create Account',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontSize: screenWidth * 0.07,
                     ),
@@ -195,7 +278,7 @@ class SignupScreen extends StatelessWidget {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => LoginScreen(),
+                                    builder: (context) => const LoginScreen(),
                                   ),
                                 );
                               },
