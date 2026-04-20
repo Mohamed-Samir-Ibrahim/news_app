@@ -6,7 +6,7 @@ import 'package:news_app/core/services/encryption_service.dart';
 import 'package:news_app/core/services/preference_manager.dart';
 import 'package:news_app/core/services/secure_storage_service.dart';
 import 'package:news_app/features/auth/signup_screen.dart';
-import 'package:news_app/features/home/home_screen.dart';
+import 'package:news_app/features/layout/layout_screen.dart';
 import 'package:news_app/shared/custom_input_label_form.dart';
 
 class LoginScreen extends StatefulWidget {
