@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
               (_) =>
                   PreferencesManager().getBool('onBoarding') == true
                       ? PreferencesManager().getBool('isLoggedIn') == true
-                          ? HomeScreen()
+                          ? LayoutScreen()
                           : LoginScreen()
                       : OnboardingScreen(),
         ),
