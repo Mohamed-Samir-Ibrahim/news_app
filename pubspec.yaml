@@ -43,6 +43,10 @@ dependencies:
   encrypt:
   flutter_secure_storage:
   flutter_svg:
+  cached_network_image:
+  get_it:
+  url_launcher:
+  http: ^1.6.0
 #  flutter_launcher_icons:
 #flutter_launcher_icons:
 #  android: "launcher_icon"
