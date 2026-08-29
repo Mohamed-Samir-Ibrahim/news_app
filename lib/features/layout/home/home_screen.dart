@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/core/extensions/time_extension.dart';
 import 'package:news_app/core/models/news_article_model.dart';
+import 'package:news_app/features/bookmark/bookmark_controller.dart';
 import 'package:news_app/features/layout/home/controller/home_controller.dart';
 import 'package:news_app/features/layout/home/trending_news.dart';
 import 'package:news_app/features/layout/home/view_all_screen.dart';
@@ -18,8 +19,8 @@ class HomeScreen extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth >= 600;
 
-    final double horizontalPadding = screenWidth * 0.04; // 4% of width
-    final double verticalSpacing = screenHeight * 0.02; // 2% of height
+    final double horizontalPadding = screenWidth * 0.04;
+    final double verticalSpacing = screenHeight * 0.02;
     final double categoryListHeight = screenHeight * (isTablet ? 0.07 : 0.06);
     final double categoryFontSize =
         isTablet ? screenWidth * 0.028 : screenWidth * 0.045;
@@ -229,91 +230,119 @@ class _NewsCard extends StatelessWidget {
         horizontal: horizontalCardPadding,
         vertical: verticalPadding,
       ),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NewsDetailsScreen(article: article),
-            ),
-          );
-        },
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(borderRadius),
-              child: CachedNetworkImage(
-                imageUrl: article.urlToImage ?? "",
-                height: imageHeight,
-                width: imageWidth,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: Colors.grey[200]),
-                errorWidget:
-                    (_, __, ___) => Container(
-                      color: Colors.grey[200],
-                      child: Icon(Icons.broken_image, size: screenWidth * 0.06),
-                    ),
-              ),
-            ),
-            SizedBox(width: gapBetweenImageAndText),
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    article.title,
-                    style: TextStyle(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'times new roman',
-                      height: 1.2,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
+      child: Consumer<BookmarkController>(
+        builder: (context, bookmarkController, child) {
+          final isBookmarked = bookmarkController.isBookmarked(article.url);
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => NewsDetailsScreen(
+                        article: article,
+                        isBookmarked: isBookmarked,
+                        onBookmarkToggle: () {
+                          if (isBookmarked) {
+                            bookmarkController.removeBookmark(article.url);
+                          } else {
+                            bookmarkController.addBookmark(article);
+                          }
+                        },
+                      ),
+                ),
+              );
+            },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: CachedNetworkImage(
+                    imageUrl: article.urlToImage ?? "",
+                    height: imageHeight,
+                    width: imageWidth,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(color: Colors.grey[200]),
+                    errorWidget:
+                        (_, __, ___) => Container(
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Icons.broken_image,
+                            size: screenWidth * 0.06,
+                          ),
+                        ),
                   ),
-                  SizedBox(height: gapAfterTitle),
-                  Row(
+                ),
+                SizedBox(width: gapBetweenImageAndText),
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (article.urlToImage != null)
-                        CircleAvatar(
-                          radius: avatarRadius,
-                          backgroundImage: CachedNetworkImageProvider(
-                            article.urlToImage!,
-                          ),
+                      Text(
+                        article.title,
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'times new roman',
+                          height: 1.2,
                         ),
-                      SizedBox(width: gapBetweenAvatarAndText),
-                      Expanded(
-                        child: Text(
-                          "${article.sourceName} • ${article.publishedAt.formatTimeAgo()}",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: sourceFontSize,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: gapAfterTitle),
+                      Row(
+                        children: [
+                          if (article.urlToImage != null)
+                            CircleAvatar(
+                              radius: avatarRadius,
+                              backgroundImage: CachedNetworkImageProvider(
+                                article.urlToImage!,
+                              ),
+                            ),
+                          SizedBox(width: gapBetweenAvatarAndText),
+                          Expanded(
+                            child: Text(
+                              "${article.sourceName} • ${article.publishedAt.formatTimeAgo()}",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: sourceFontSize,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                // Bookmark icon
+                GestureDetector(
+                  onTap: () {
+                    if (isBookmarked) {
+                      bookmarkController.removeBookmark(article.url);
+                    } else {
+                      bookmarkController.addBookmark(article);
+                    }
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: bookmarkPaddingLeft,
+                      top: bookmarkPaddingTop,
+                    ),
+                    child: Icon(
+                      isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      color: isBookmarked ? Colors.red : Colors.black,
+                      size: bookmarkIconSize,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            // Bookmark icon
-            Padding(
-              padding: EdgeInsets.only(
-                left: bookmarkPaddingLeft,
-                top: bookmarkPaddingTop,
-              ),
-              child: Icon(
-                Icons.bookmark_border,
-                color: Colors.black,
-                size: bookmarkIconSize,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

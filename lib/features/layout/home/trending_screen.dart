@@ -2,7 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/core/extensions/time_extension.dart';
 import 'package:news_app/core/models/news_article_model.dart';
+import 'package:news_app/features/bookmark/bookmark_controller.dart';
 import 'package:news_app/features/layout/news_details_screen.dart';
+import 'package:provider/provider.dart';
 
 class TrendingScreen extends StatelessWidget {
   final List<NewsArticleModel>? topNews;
@@ -101,116 +103,168 @@ class _TrendingCard extends StatelessWidget {
     final double shadowBlurRadius = screenWidth * 0.025;
     final double shadowOffsetDy = screenHeight * 0.005;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NewsDetailsScreen(article: article),
-          ),
-        );
-      },
-      child: Container(
-        margin: EdgeInsets.only(bottom: cardMarginBottom),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              spreadRadius: shadowSpreadRadius,
-              blurRadius: shadowBlurRadius,
-              offset: Offset(0, shadowOffsetDy),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(borderRadius),
-                topRight: Radius.circular(borderRadius),
-              ),
-              child: CachedNetworkImage(
-                imageUrl: article.urlToImage ?? '',
-                height: imageHeight,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder:
-                    (_, __) => Container(
-                      height: imageHeight,
-                      color: Colors.grey[200],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                errorWidget:
-                    (_, __, ___) => Container(
-                      height: imageHeight,
-                      color: Colors.grey[200],
-                      child: Icon(Icons.broken_image, size: iconSize),
+    return Consumer<BookmarkController>(
+      builder: (context, bookmarkController, child) {
+        final isBookmarked = bookmarkController.isBookmarked(article.url);
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => NewsDetailsScreen(
+                      article: article,
+                      isBookmarked: isBookmarked,
+                      onBookmarkToggle: () {
+                        if (isBookmarked) {
+                          bookmarkController.removeBookmark(article.url);
+                        } else {
+                          bookmarkController.addBookmark(article);
+                        }
+                      },
                     ),
               ),
+            );
+          },
+          child: Container(
+            margin: EdgeInsets.only(bottom: cardMarginBottom),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(borderRadius),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  spreadRadius: shadowSpreadRadius,
+                  blurRadius: shadowBlurRadius,
+                  offset: Offset(0, shadowOffsetDy),
+                ),
+              ],
             ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(cardPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
                   children: [
-                    Text(
-                      article.title,
-                      style: TextStyle(
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.bold,
-                        height: 1.3,
+                    ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(borderRadius),
+                        topRight: Radius.circular(borderRadius),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: avatarRadius,
-                          backgroundImage:
-                              article.urlToImage != null
-                                  ? CachedNetworkImageProvider(
-                                    article.urlToImage!,
-                                  )
-                                  : null,
-                          child:
-                              article.urlToImage == null
-                                  ? Icon(Icons.person, size: avatarRadius * 0.8)
-                                  : null,
-                        ),
-                        SizedBox(width: screenWidth * 0.02),
-                        Expanded(
-                          child: Text(
-                            article.sourceName,
-                            style: TextStyle(
-                              fontSize: sourceFontSize,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey,
+                      child: CachedNetworkImage(
+                        imageUrl: article.urlToImage ?? '',
+                        height: imageHeight,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (_, __) => Container(
+                              height: imageHeight,
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
+                        errorWidget:
+                            (_, __, ___) => Container(
+                              height: imageHeight,
+                              color: Colors.grey[200],
+                              child: Icon(Icons.broken_image, size: iconSize),
+                            ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (isBookmarked) {
+                            bookmarkController.removeBookmark(article.url);
+                          } else {
+                            bookmarkController.addBookmark(article);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isBookmarked
+                                ? Icons.bookmark
+                                : Icons.bookmark_border,
+                            color: isBookmarked ? Colors.red : Colors.black,
+                            size: iconSize * 0.8,
                           ),
                         ),
-                        Text(
-                          article.publishedAt.formatTimeAgo(),
-                          style: TextStyle(
-                            fontSize: timeFontSize,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
-              ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(cardPadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          article.title,
+                          style: TextStyle(
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: avatarRadius,
+                              backgroundImage:
+                                  article.urlToImage != null
+                                      ? CachedNetworkImageProvider(
+                                        article.urlToImage!,
+                                      )
+                                      : null,
+                              child:
+                                  article.urlToImage == null
+                                      ? Icon(
+                                        Icons.person,
+                                        size: avatarRadius * 0.8,
+                                      )
+                                      : null,
+                            ),
+                            SizedBox(width: screenWidth * 0.02),
+                            Expanded(
+                              child: Text(
+                                article.sourceName,
+                                style: TextStyle(
+                                  fontSize: sourceFontSize,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              article.publishedAt.formatTimeAgo(),
+                              style: TextStyle(
+                                fontSize: timeFontSize,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
