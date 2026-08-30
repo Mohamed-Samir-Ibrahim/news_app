@@ -3,6 +3,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:news_app/core/models/user/user_model.dart';
 import 'package:news_app/core/services/preference_manager.dart';
 import 'package:news_app/core/services/service_locator.dart';
+import 'package:news_app/features/bookmark/bookmark_controller.dart';
 import 'package:news_app/features/layout/home/controller/home_controller.dart';
 import 'package:news_app/features/splash/splash_screen.dart';
 import 'package:path_provider/path_provider.dart';
@@ -50,10 +51,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) {
-        return HomeController()..init();
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) =>
+        HomeController()
+          ..init()),
+        ChangeNotifierProvider(create: (context) =>
+        BookmarkController()
+          ..init()),
+      ],
       child: MaterialApp(
         title: 'Newst',
         theme: ThemeData(scaffoldBackgroundColor: Color(0xfff3f3f3)),

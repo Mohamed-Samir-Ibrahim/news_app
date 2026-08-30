@@ -2,20 +2,27 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/core/extensions/time_extension.dart';
 import 'package:news_app/core/models/news_article_model.dart';
+import 'package:news_app/features/bookmark/bookmark_controller.dart';
+import 'package:provider/provider.dart';
 
 class NewsDetailsScreen extends StatelessWidget {
   final NewsArticleModel article;
-  final Function()? onBookmarkToggle;
 
   const NewsDetailsScreen({
     super.key,
     required this.article,
-    this.onBookmarkToggle,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    return Consumer<BookmarkController>(
+      builder: (context, controller, child) {
+        final isBookmarked = controller.isBookmarked(article.url);
+
+        final screenWidth = MediaQuery
+            .of(context)
+            .size
+            .width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth >= 600;
     final isLandscape =
@@ -31,23 +38,47 @@ class NewsDetailsScreen extends StatelessWidget {
     final verticalPadding = isTablet ? 20.0 : 16.0;
     final appBarFontSize = isTablet ? 32.0 : 24.0;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'News Details',
-          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-            color: Colors.black,
-            fontSize: appBarFontSize,
-            letterSpacing: 3,
-            fontFamily: 'times new roman',
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'News Details',
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headlineLarge
+                  ?.copyWith(
+                color: Colors.black,
+                fontSize: appBarFontSize,
+                letterSpacing: 3,
+                fontFamily: 'times new roman',
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  if (isBookmarked) {
+                    controller.removeBookmark(article.url);
+                  } else {
+                    controller.addBookmark(article);
+                  }
+                },
+                icon: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked
+                      ? Theme
+                      .of(context)
+                      .colorScheme
+                      .primary
+                      : null,
+                ),
+              ),
+            ],
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Padding(
+          body: Padding(
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: SingleChildScrollView(
           child: Column(
@@ -136,6 +167,8 @@ class NewsDetailsScreen extends StatelessWidget {
           ),
         ),
       ),
+        );
+      },
     );
   }
 }
