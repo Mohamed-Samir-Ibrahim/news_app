@@ -2,22 +2,27 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/core/extensions/time_extension.dart';
 import 'package:news_app/core/models/news_article_model.dart';
+import 'package:news_app/features/bookmark/bookmark_controller.dart';
+import 'package:provider/provider.dart';
 
 class NewsDetailsScreen extends StatelessWidget {
   final NewsArticleModel article;
-  final bool isBookmarked;
-  final Function()? onBookmarkToggle;
 
   const NewsDetailsScreen({
     super.key,
     required this.article,
-    required this.isBookmarked,
-    this.onBookmarkToggle,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    return Consumer<BookmarkController>(
+      builder: (context, controller, child) {
+        final isBookmarked = controller.isBookmarked(article.url);
+
+        final screenWidth = MediaQuery
+            .of(context)
+            .size
+            .width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth >= 600;
     final isLandscape =
@@ -52,34 +57,47 @@ class NewsDetailsScreen extends StatelessWidget {
     final double gapBetweenAvatarAndText = screenWidth * 0.03;
     final double gapBetweenTextAndTime = screenWidth * 0.03;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'News Details',
-          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-            color: Colors.black,
-            fontSize: appBarFontSize,
-            letterSpacing: 3,
-            fontFamily: 'times new roman',
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: iconSize),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-              color: isBookmarked ? Colors.red : Colors.black,
-              size: iconSize,
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'News Details',
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headlineLarge
+                  ?.copyWith(
+                color: Colors.black,
+                fontSize: appBarFontSize,
+                letterSpacing: 3,
+                fontFamily: 'times new roman',
+              ),
             ),
-            onPressed: onBookmarkToggle,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  if (isBookmarked) {
+                    controller.removeBookmark(article.url);
+                  } else {
+                    controller.addBookmark(article);
+                  }
+                },
+                icon: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked
+                      ? Theme
+                      .of(context)
+                      .colorScheme
+                      .primary
+                      : null,
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: screenWidth * 0.02),
-        ],
-      ),
-      body: Padding(
+          body: Padding(
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: SingleChildScrollView(
           child: Column(
@@ -168,6 +186,8 @@ class NewsDetailsScreen extends StatelessWidget {
           ),
         ),
       ),
+        );
+      },
     );
   }
 }

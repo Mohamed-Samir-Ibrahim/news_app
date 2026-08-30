@@ -1,51 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-
-import '../../core/models/news_article_model.dart';
-import '../../core/services/preference_manager.dart';
+import 'package:news_app/core/models/news_article_model.dart';
+import 'package:news_app/core/services/preference_manager.dart';
 
 class BookmarkController extends ChangeNotifier {
-  Box<NewsArticleModel>? bookmarksBox;
-  List<NewsArticleModel> bookmarks = [];
-  String? userId;
+  Box<NewsArticleModel>? _bookmarksBox;
+  String? _userId;
 
   Future<void> init() async {
-    userId = PreferencesManager().getString('userId');
-    if (userId == null) return;
-
-    bookmarksBox = await Hive.openBox<NewsArticleModel>('bookmarks_$userId');
-    bookmarks = bookmarksBox!.values.toList();
+    _userId = PreferencesManager().getString('userId') ?? 'default_user';
+    final boxName = 'bookmarks_$_userId';
+    if (!Hive.isBoxOpen(boxName)) {
+      _bookmarksBox = await Hive.openBox<NewsArticleModel>(boxName);
+    } else {
+      _bookmarksBox = Hive.box<NewsArticleModel>(boxName);
+    }
     notifyListeners();
   }
 
-  Future<void> addBookmark(NewsArticleModel article) async {
-    if (bookmarksBox == null) return;
+  bool isBookmarked(String url) {
+    if (_bookmarksBox == null) return false;
+    return _bookmarksBox!.values.any((article) => article.url == url);
+  }
 
-    final exists = bookmarksBox!.values.any((a) => a.url == article.url);
-    if (!exists) {
-      await bookmarksBox!.add(article);
-      bookmarks = bookmarksBox!.values.toList();
-      notifyListeners();
-    }
+  Future<void> addBookmark(NewsArticleModel article) async {
+    if (_bookmarksBox == null) await init();
+    await _bookmarksBox!.put(article.url, article);
+    notifyListeners();
   }
 
   Future<void> removeBookmark(String url) async {
-    if (bookmarksBox == null) return;
-
-    final key = bookmarksBox!.keys.firstWhere(
-      (k) => bookmarksBox!.get(k)?.url == url,
-      orElse: () => null,
-    );
-
-    if (key != null) {
-      await bookmarksBox!.delete(key);
-      bookmarks = bookmarksBox!.values.toList();
-      notifyListeners();
-    }
+    if (_bookmarksBox == null) await init();
+    await _bookmarksBox!.delete(url);
+    notifyListeners();
   }
 
-  bool isBookmarked(String url) {
-    if (bookmarksBox == null || !bookmarksBox!.isOpen) return false;
-    return bookmarksBox!.values.any((a) => a.url == url);
+  List<NewsArticleModel> get bookmarks {
+    if (_bookmarksBox == null) return [];
+    return _bookmarksBox!.values.toList();
   }
 }

@@ -62,11 +62,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Newst',
-      theme: ThemeData(scaffoldBackgroundColor: const Color(0xfff3f3f3)),
-      debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) =>
+        HomeController()
+          ..init()),
+        ChangeNotifierProvider(create: (context) =>
+        BookmarkController()
+          ..init()),
+      ],
+      child: MaterialApp(
+        title: 'Newst',
+        theme: ThemeData(scaffoldBackgroundColor: Color(0xfff3f3f3)),
+        debugShowCheckedModeBanner: false,
+        home: const SplashScreen(),
+      ),
     );
   }
 }
