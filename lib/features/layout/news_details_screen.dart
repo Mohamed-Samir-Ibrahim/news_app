@@ -28,15 +28,34 @@ class NewsDetailsScreen extends StatelessWidget {
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
-    final imageHeight = isLandscape ? screenHeight * 0.65 : screenHeight * 0.35;
-    final titleFontSize = isTablet ? 28.0 : 20.0;
-    final sourceFontSize = isTablet ? 18.0 : 16.0;
-    final timeFontSize = isTablet ? 16.0 : 14.0;
-    final descriptionFontSize = isTablet ? 20.0 : 17.0;
-    final avatarRadius = isTablet ? 24.0 : 15.0;
-    final horizontalPadding = isTablet ? 24.0 : 16.0;
-    final verticalPadding = isTablet ? 20.0 : 16.0;
-    final appBarFontSize = isTablet ? 32.0 : 24.0;
+    final double imageHeight =
+        isLandscape ? screenHeight * 0.65 : screenHeight * 0.35;
+
+    final double appBarFontSize =
+        isTablet ? screenWidth * 0.04 : screenWidth * 0.06;
+    final double titleFontSize =
+        isTablet ? screenWidth * 0.035 : screenWidth * 0.05;
+    final double sourceFontSize =
+        isTablet ? screenWidth * 0.025 : screenWidth * 0.04;
+    final double timeFontSize =
+        isTablet ? screenWidth * 0.02 : screenWidth * 0.035;
+    final double descriptionFontSize =
+        isTablet ? screenWidth * 0.028 : screenWidth * 0.045;
+    final double avatarRadius =
+        isTablet ? screenWidth * 0.03 : screenWidth * 0.04;
+
+    final double horizontalPadding = screenWidth * 0.04;
+    final double verticalPadding = screenHeight * 0.02;
+
+    final double iconSize = screenWidth * 0.06;
+    final double errorIconSize = screenWidth * 0.12;
+
+    final double gapAfterImage = verticalPadding;
+    final double gapAfterTitle = screenHeight * 0.015;
+    final double gapAfterSourceRow = screenHeight * 0.025;
+    final double gapAfterDescription = screenHeight * 0.05;
+    final double gapBetweenAvatarAndText = screenWidth * 0.03;
+    final double gapBetweenTextAndTime = screenWidth * 0.03;
 
         return Scaffold(
           appBar: AppBar(
@@ -86,7 +105,7 @@ class NewsDetailsScreen extends StatelessWidget {
             children: [
               SizedBox(height: verticalPadding),
               ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(screenWidth * 0.04),
                 child: CachedNetworkImage(
                   imageUrl: article.urlToImage ?? '',
                   width: double.infinity,
@@ -104,11 +123,11 @@ class NewsDetailsScreen extends StatelessWidget {
                         width: double.infinity,
                         height: imageHeight,
                         color: Colors.grey.shade300,
-                        child: const Icon(Icons.broken_image, size: 50),
+                        child: Icon(Icons.broken_image, size: errorIconSize),
                       ),
                 ),
               ),
-              SizedBox(height: verticalPadding),
+              SizedBox(height: gapAfterImage),
               Text(
                 article.title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -118,7 +137,7 @@ class NewsDetailsScreen extends StatelessWidget {
                 ),
                 maxLines: 3,
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: gapAfterTitle),
               Row(
                 children: [
                   if (article.urlToImage != null &&
@@ -129,7 +148,7 @@ class NewsDetailsScreen extends StatelessWidget {
                         article.urlToImage!,
                       ),
                     ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: gapBetweenAvatarAndText),
                   Expanded(
                     child: Text(
                       article.sourceName,
@@ -141,7 +160,7 @@ class NewsDetailsScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: gapBetweenTextAndTime),
                   Text(
                     article.publishedAt.formatTimeAgo(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -152,7 +171,7 @@ class NewsDetailsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: gapAfterSourceRow),
               Text(
                 article.description ?? "No description available.",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -162,7 +181,7 @@ class NewsDetailsScreen extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: gapAfterDescription),
             ],
           ),
         ),

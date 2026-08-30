@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/core/extensions/time_extension.dart';
+import 'package:news_app/features/bookmark/bookmark_controller.dart';
 import 'package:news_app/features/layout/home/trending_screen.dart';
+import 'package:news_app/features/layout/news_details_screen.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/models/news_article_model.dart';
 
@@ -173,83 +176,137 @@ class _TrendingCard extends StatelessWidget {
     final double gapAfterTitle = screenHeight * 0.01;
     final double gapBetweenAvatarAndText = screenWidth * 0.02;
 
-    return SizedBox(
-      width: cardWidth,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(borderRadius),
-            child: CachedNetworkImage(
-              imageUrl: article.urlToImage ?? '',
-              height: double.infinity,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(color: Colors.grey[300]),
-              errorWidget:
-                  (_, __, ___) => Container(
-                    color: Colors.grey[300],
-                    child: Icon(Icons.broken_image, size: screenWidth * 0.06),
-                  ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(borderRadius),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.8),
-                ],
+    return Consumer<BookmarkController>(
+      builder: (context, bookmarkController, child) {
+        final isBookmarked = bookmarkController.isBookmarked(article.url);
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => NewsDetailsScreen(
+                      article: article,
+                      isBookmarked: isBookmarked,
+                      onBookmarkToggle: () {
+                        if (isBookmarked) {
+                          bookmarkController.removeBookmark(article.url);
+                        } else {
+                          bookmarkController.addBookmark(article);
+                        }
+                      },
+                    ),
               ),
-            ),
-          ),
-          Positioned(
-            bottom: screenHeight * 0.02,
-            left: textPadding,
-            right: textPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            );
+          },
+          child: SizedBox(
+            width: cardWidth,
+            child: Stack(
               children: [
-                Text(
-                  article.title,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: titleFontSize,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: CachedNetworkImage(
+                    imageUrl: article.urlToImage ?? '',
+                    height: double.infinity,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(color: Colors.grey[300]),
+                    errorWidget:
+                        (_, __, ___) => Container(
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.broken_image,
+                            size: screenWidth * 0.06,
+                          ),
+                        ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: gapAfterTitle),
-                Row(
-                  children: [
-                    if (article.urlToImage != null)
-                      CircleAvatar(
-                        radius: avatarRadius,
-                        backgroundImage: CachedNetworkImageProvider(
-                          article.urlToImage!,
-                        ),
-                      ),
-                    SizedBox(width: gapBetweenAvatarAndText),
-                    Expanded(
-                      child: Text(
-                        "${article.sourceName} • ${article.publishedAt.formatTimeAgo()}",
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: screenHeight * 0.02,
+                  left: textPadding,
+                  right: textPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        article.title,
                         style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: sourceFontSize,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: titleFontSize,
                         ),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      SizedBox(height: gapAfterTitle),
+                      Row(
+                        children: [
+                          if (article.urlToImage != null)
+                            CircleAvatar(
+                              radius: avatarRadius,
+                              backgroundImage: CachedNetworkImageProvider(
+                                article.urlToImage!,
+                              ),
+                            ),
+                          SizedBox(width: gapBetweenAvatarAndText),
+                          Expanded(
+                            child: Text(
+                              "${article.sourceName} • ${article.publishedAt.formatTimeAgo()}",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: sourceFontSize,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (isBookmarked) {
+                        bookmarkController.removeBookmark(article.url);
+                      } else {
+                        bookmarkController.addBookmark(article);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                        color: isBookmarked ? Colors.red : Colors.white,
+                        size: 20,
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

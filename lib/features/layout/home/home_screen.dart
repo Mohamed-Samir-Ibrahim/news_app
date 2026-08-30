@@ -14,8 +14,8 @@ class HomeScreen extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth >= 600;
 
-    final double horizontalPadding = screenWidth * 0.04; // 4% of width
-    final double verticalSpacing = screenHeight * 0.02; // 2% of height
+    final double horizontalPadding = screenWidth * 0.04;
+    final double verticalSpacing = screenHeight * 0.02;
     final double categoryListHeight = screenHeight * (isTablet ? 0.07 : 0.06);
     final double categoryFontSize =
         isTablet ? screenWidth * 0.028 : screenWidth * 0.045;

@@ -42,13 +42,24 @@ void main() async {
     // You can show a dialog or fallback here in production
   }
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) =>
+        HomeController()
+          ..init()),
+        ChangeNotifierProvider(create: (context) =>
+        BookmarkController()
+          ..init()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
